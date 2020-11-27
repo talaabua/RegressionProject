@@ -1,0 +1,199 @@
+---
+title: "Regression Project"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+Cars<-read.csv("Project_data_Cars.csv")
+
+```
+
+```{r}
+plot1<-plot(Cars$Mileage,Cars$Price)
+```
+
+```{r}
+x_i<-Cars$Mileage
+y_i<-Cars$Price
+Sxy<-sum((x_i-mean(x_i))*(y_i-mean(y_i)))
+Sxx<-sum((x_i-mean(x_i))^2)
+B1<-Sxy/Sxx
+B0<-mean(y_i)-(B1*mean(x_i))
+B1
+B0
+```
+The regression model is Price ($)= -0.1725205 * Mileage + 24764.56.
+
+```{r}
+SSReg<-sum(((B0+B1*y_i)-mean(y_i))^2)
+SSRes<-sum((y_i-(B0+B1*x_i))^2)
+SSTot<-sum((y_i-mean(y_i))^2)
+n_dim=dim(Cars)
+n=n_dim[1]
+df=n-2
+se2=(1/(n-2))*sum((y_i-(B0+B1*x_i))^2)
+R2<-1-(SSRes/SSTot)
+R2
+R2adj<-1-((SSRes/(n-2))/(SSTot/(n-1)))
+R2adj
+CorrelationCoeff<-(n*sum(x_i*y_i)-sum(x_i)*sum(y_i))/sqrt((n*sum(x_i^2)-(sum(x_i))^2)*(n*sum(y_i^2)-(sum(y_i))^2))
+CorrelationCoeff
+Car1Residual<-y_i[1]-(B0+B1*x_i[1])
+Car1Residual
+sb1<-sqrt((1/(n-2))*sum((y_i-(B0+B1*(x_i)))^2)/sum((x_i-mean(x_i))^2))
+sb0<-sb1*sqrt(1/n*sum(x_i^2))
+sb0
+sb1
+tsb0<-B0/sb0
+tsb1<-B1/sb1
+tsb0
+tsb1
+```
+
+
+```{r}
+fit.Cars<-lm(Cars$Price~Cars$Mileage,data=Cars)
+fit.Cars
+summary(fit.Cars)
+```
+```{r}
+x_i[1]
+y_i[1]
+price1<-B0+B1*x_i[1]
+residual1=y_i[1]-price1
+residual1
+```
+
+Activity 2:
+```{r}
+test.cyl = lm(Price~Cyl, data = Cars)
+# Multiple R-squared:  0.3239,	Adjusted R-squared:  0.323 
+#summary(test.cyl)
+test.liter = lm(Price~Liter, data = Cars)
+#Multiple R-squared:  0.3115,	Adjusted R-squared:  0.3107 
+#summary(test.liter)
+test.doors = lm(Price~Doors, data = Cars)
+#Multiple R-squared:  0.01925,	Adjusted R-squared:  0.01803
+#summary(test.doors)
+test.cruise = lm(Price~Cruise, data = Cars)
+#Multiple R-squared:  0.1856,	Adjusted R-squared:  0.1846
+#summary(test.cruise)
+test.sound = lm(Price~Sound, data = Cars)
+#Multiple R-squared:  0.01546,	Adjusted R-squared:  0.01423
+#summary(test.sound)
+test.leather = lm(Price~Leather, data = Cars)
+#Multiple R-squared:  0.02471,	Adjusted R-squared:  0.02349 
+#summary(test.leather)
+test.mileage = lm(Price~Mileage, data = Cars)
+#Multiple R-squared:  0.02046,	Adjusted R-squared:  0.01924
+#summary(test.mileage)
+
+#Since Cyl has the largest R Square Value then we USE X1 = Cyl
+```
+```{r}
+test.liter2 = lm(Price~Cyl+Liter, data = Cars)
+#Multiple R-squared:  0.3259,	Adjusted R-squared:  0.3242 
+#summary(test.liter2)
+test.doors2 = lm(Price~Cyl+Doors, data = Cars)
+#Multiple R-squared:  0.3435,	Adjusted R-squared:  0.3418 
+#summary(test.doors2)
+test.cruise2 = lm(Price~Cyl+Cruise, data = Cars)
+#Multiple R-squared:  0.3839,	Adjusted R-squared:  0.3824 
+#summary(test.cruise2)
+test.sound2 = lm(Price~Cyl+Sound, data = Cars)
+#Multiple R-squared:  0.3293,	Adjusted R-squared:  0.3276 
+#summary(test.sound2)
+test.leather2 = lm(Price~Cyl+Leather, data = Cars)
+#Multiple R-squared:  0.337,	Adjusted R-squared:  0.3353 
+#summary(test.leather2)
+test.mileage2 = lm(Price~Cyl+Mileage, data = Cars)
+#Multiple R-squared:  0.3398,	Adjusted R-squared:  0.3382 
+#summary(test.mileage2)
+
+
+```
+
+```{r}
+fit.start = lm(Price~1, data=Cars)
+fit.all = lm(Price~Cyl+Liter+Doors+Cruise+Sound+Leather+Mileage, data=Cars)
+summary(fit.all)
+step(fit.start, direction = "both", scope=formula(fit.all))
+#This shows that the model suggested by the stepwise regression procedure is Price ~ Cyl + Cruise + Leather + Mileage + Doors + Sound
+```
+
+```{r}
+if (!require(olsrr)) install.packages('olsrr')
+library(olsrr)
+#The package above is required to find best subesets for different mutiple models (may need to load program twice)
+fit.all = lm(Price~Cyl+Liter+Doors+Cruise+Sound+Leather+Mileage, data=Cars)
+ols_step_best_subset(fit.all)
+
+```
+
+
+```{r}
+#resdiuals vs explanatory variables 
+res = resid(fit.all)
+plot(Cars$Cyl,res)
+plot(Cars$Cruise,res)
+plot(Cars$Leather,res)
+plot(Cars$Sound,res)
+plot(Cars$Doors,res)
+plot(Cars$Mileage,res)
+
+# residuals vs fitted values 
+plot(fit.all$fitted.values,res)
+
+```
+
+
+
+```{r}
+
+#log_price Multiple R-squared: 0.4863
+Cars[,c(2)] <- log(Cars[,c(2)],base=10)
+fit.logprice <-lm(Cars$Price ~Cyl+Liter+Doors+Cruise+Sound+Leather+Mileage, data=Cars)
+summary(fit.logprice)
+```
+
+
+```{r}
+#residuals using log price  
+
+res = resid(fit.logprice)
+plot(Cars$Cyl,res)
+plot(Cars$Cruise,res)
+plot(Cars$Leather,res)
+plot(Cars$Sound,res)
+plot(Cars$Doors,res)
+plot(Cars$Mileage,res)
+
+plot(fit.logprice$fitted.values,res)
+summary(fit.logprice)
+```
+
+```{r}
+#making price = sqrt(price )
+Cars[,c(2)] <- sqrt(Cars[,c(2)])
+fit.sqrt <-lm(Cars$Price ~Cyl+Liter+Doors+Cruise+Sound+Leather+Mileage, data=Cars)
+
+```
+
+```{r}
+#sqrt price Multiple R-squared:  0.4692
+#residuals using sqrt price 
+res = resid(fit.sqrt)
+plot(Cars$Cyl,res)
+plot(Cars$Cruise,res)
+plot(Cars$Leather,res)
+plot(Cars$Sound,res)
+plot(Cars$Doors,res)
+plot(Cars$Mileage,res)
+
+plot(fit.sqrt$fitted.values,res)
+summary(fit.sqrt)
+```
